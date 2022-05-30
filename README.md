@@ -12,3 +12,5 @@ git clone https://github.com/nhmvienna/Workshop_IV_DeNovoAssembly
 ```
 
 -   Then, follow the instruction in shell/assembly_pipeline.sh
+
+## For a fully automated Pipeline, see here: <https://github.com/nhmvienna/AutDeNovo>
