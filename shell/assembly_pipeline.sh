@@ -1,8 +1,8 @@
-#### Assembly pipeline ####
+############################ Assembly pipeline ####################################
 
 ### In this workshop, we will to reconstruct continuous (i.e. syntenic) stretches of DNA (so called contigs) from the genome of the fish Garra longipinnis (Luise's and Sandra's favourite pet's) using three types of sequencing data.
 
-### (1) Clone Github repository
+################### (1) Clone Github repository ###################
 
 ### As a first step, you will have cloned the GitHub repository of this workshop to your home directory. If this is not the case, you should do it now using the following command
 
@@ -22,4 +22,10 @@ ls -l
 
 gunzip -c Garra474_1.fq.gz | head -4
 
-## What do these top 4 rows
+## What do these top 4 rows mean? Can
+
+### ??? Can you repeat the same for the ONT data?
+
+################### (2) DATA Quality ###################
+
+###
