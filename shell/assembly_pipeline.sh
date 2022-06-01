@@ -120,4 +120,48 @@ qstat -awt
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
 
-## for the PacBio data, we do not have a summary file
+## for the PacBio data, we do not have a sequencing summary file as for the ONT data, thus, we need to use the FASTQ sequences for QC
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC
+
+echo """
+#!/bin/sh
+
+## name of Job
+#PBS -N fastqc
+
+## Redirect output stream to this file.
+#PBS -o ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastq_log.txt
+
+## Stream Standard Output AND Standard Error to outputfile (see above)
+#PBS -j oe
+
+## Select 10 cores and 50gb of RAM
+#PBS -l select=1:ncpus=10:mem=50g
+
+######## load dependencies #######
+
+source /opt/anaconda3/etc/profile.d/conda.sh
+conda activate nanoplot_1.32.1
+
+######## run analyses #######
+
+NanoPlot \
+  -t 10 \
+  --fastq ~/Workshop_IV_DeNovoAssembly/data/PacBio/Garra_PB.fastq.gz \
+  --plots dot \
+  -o ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastqc.sh
+
+## Submit the job to OpenPBS
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastqc.sh
+
+## check the status of your OpenPBS Job
+
+qstat -awt
+
+## once the job is finished, you can check the output in the browser
+
+firefox ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/NanoPlot-report.html
