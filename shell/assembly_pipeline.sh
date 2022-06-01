@@ -20,9 +20,9 @@ ls -l
 
 ### What do the raw Illumina raw data look like?
 
-gunzip -c Garra474_1.fq.gz | head -4
+gunzip -c Garra_Ill_R1.fq.gz | head -4
 
-## What do these top 4 rows mean? Can
+## What do these top 4 rows mean?
 
 ### ??? Can you repeat the same for the ONT data?
 
@@ -56,8 +56,8 @@ module load Tools/FastQC-0.11.9
 fastqc \
   --outdir ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC \
   --threads 10 \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_1.fq.gz \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_2.fq.gz
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R2.fq.gz
 
 """ > ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/fastqc.sh
 
@@ -71,8 +71,8 @@ qstat -awt
 
 ## once the job is finished, you can check the output in the browser
 
-firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra474_1_fastqc.html
-firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra474_2_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra_Ill_R1_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra_Ill_R2_fastqc.html
 
 ## What about the ONT dataset? We will use Nanoplot for this!
 
@@ -158,8 +158,8 @@ trim_galore \
   --cores 200 \
   --fastqc \
   --gzip \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_1.fq.gz \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_2.fq.gz
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R2.fq.gz
 
 """ > ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
 
@@ -169,8 +169,8 @@ qsub ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
 qstat -awt
 
 ## once the job is finished, you can check the quality of the trimmed reads in the browser
-firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1_fastqc.html
-firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2_fastqc.html
 
 ################### (4) Genome-size estimation ###################
 
@@ -214,10 +214,10 @@ echo """
   module load Assembly/genomescope-2.0
 
   ## unzip files
-  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq.gz \
-  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq &
-  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq.gz \
-  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq
+  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq &
+  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2.fq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2.fq
 
   wait
 
@@ -234,11 +234,11 @@ echo """
     -t 10 \
     -F 2 \
     -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.jf \
-    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq \
-    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq
+    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq \
+    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2.fq
 
   ## remove unzipped copy of reads
-  rm -f ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_*_val_*.fq
+  rm -f ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R*_val_*.fq
 
   ## make a histogram of all k-mers
   jellyfish-linux histo \
@@ -247,12 +247,12 @@ echo """
     > ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.histo
 
   ## run GenomeScope
-
   genomescope.R \
   -i ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.histo \
   -k 31 \
   -p 2 \
   -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats
+
 """ > ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 
 qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
@@ -293,8 +293,8 @@ echo """
   > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
   spades.py \
-    -1 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq.gz \
-    -2 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq.gz \
+    -1 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq.gz \
+    -2 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2.fq.gz \
     --nanopore ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz \
     -t 10 \
     -m 50 \
@@ -343,3 +343,42 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
+
+#### OK, now the assemblies is finished, what now?
+
+################### (6) Assembly statistics ###################
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N QUAST
+
+  ## Redirect output stream to this file.
+  #PBS -o~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  module load Assembly/Quast-5.1.0rc1
+
+  ######## run analyses #######
+
+  quast.py \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast \
+  --threads 10 \
+  --eukaryote \
+  -f \
+  ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/scaffolds.fasta
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/quast.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/quast.sh
