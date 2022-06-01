@@ -119,3 +119,5 @@ qstat -awt
 ## once the job is finished, you can check the output in the browser
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
+
+## for the PacBio data, we do not have a summary file
