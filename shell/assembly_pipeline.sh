@@ -165,3 +165,7 @@ qstat -awt
 ## once the job is finished, you can check the output in the browser
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/NanoPlot-report.html
+
+################### (3) Trimming of Illumina reads ###################
+
+## Before we start the actual assembly, we need to "clean up" the Illumina reads, i.e. to trim away tails of the reads with low quality and adaptor sequences that were used for Illumina sequencing. We use the program trim_galore for that.
