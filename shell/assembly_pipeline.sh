@@ -95,18 +95,27 @@ echo """
 
 ######## load dependencies #######
 
-module load Tools/FastQC-0.11.9
+source /opt/anaconda3/etc/profile.d/conda.sh
+conda activate nanoplot_1.32.1
 
-## loop through all raw FASTQ and test quality
+######## run analyses #######
 
-fastqc \
-  --outdir ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC \
-  --threads 10 \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_1.fq.gz \
-  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_2.fq.gz
+NanoPlot \
+  -t 10 \
+  --summary ~/Workshop_IV_DeNovoAssembly/data/ONT/sequencing_summary.txt \
+  --plots dot \
+  -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/fastqc.sh
+""" > ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastqc.sh
 
 ## Submit the job to OpenPBS
 
-qsub ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/fastqc.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastqc.sh
+
+## check the status of your OpenPBS Job
+
+qstat -awt
+
+## once the job is finished, you can check the output in the browser
+
+firefox ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
