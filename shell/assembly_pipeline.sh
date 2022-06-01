@@ -72,6 +72,7 @@ qstat -awt
 ## once the job is finished, you can check the output in the browser
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra474_1_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra474_2_fastqc.html
 
 ## What about the ONT dataset? We will use Nanoplot for this!
 
@@ -106,11 +107,11 @@ NanoPlot \
   --plots dot \
   -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastqc.sh
+""" > ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_ont.sh
 
 ## Submit the job to OpenPBS
 
-qsub ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastqc.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_ont.sh
 
 ## check the status of your OpenPBS Job
 
@@ -152,11 +153,11 @@ NanoPlot \
   --plots dot \
   -o ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastqc.sh
+""" > ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/nanoplot_pb.sh
 
 ## Submit the job to OpenPBS
 
-qsub ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastqc.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/nanoplot_pb.sh
 
 ## check the status of your OpenPBS Job
 
@@ -169,3 +170,50 @@ firefox ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/NanoPlot-report.html
 ################### (3) Trimming of Illumina reads ###################
 
 ## Before we start the actual assembly, we need to "clean up" the Illumina reads, i.e. to trim away tails of the reads with low quality and adaptor sequences that were used for Illumina sequencing. We use the program trim_galore for that.
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/trimmed
+
+echo """
+#!/bin/sh
+
+## name of Job
+#PBS -N trim_galore
+
+## Redirect output stream to this file.
+#PBS -o ~/Workshop_IV_DeNovoAssembly/results/trimmed/log.txt
+
+## Stream Standard Output AND Standard Error to outputfile (see above)
+#PBS -j oe
+
+## Select 10 cores and 50gb of RAM
+#PBS -l select=1:ncpus=10:mem=50g
+
+######## load dependencies #######
+
+source /opt/anaconda3/etc/profile.d/conda.sh
+conda activate trim-galore-0.6.2
+
+## loop through all FASTQ pairs and trim by quality PHRED 20, min length 85bp and automatically detect & remove adapters
+
+cd ~/Workshop_IV_DeNovoAssembly/results/trimmed
+
+trim_galore \
+  --paired \
+  --quality 20 \
+  --length 85  \
+  --cores 200 \
+  --fastqc \
+  --gzip \
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_1.fq.gz \
+  ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra474_2.fq.gz
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
+
+## check the status of your OpenPBS Job
+qstat -awt
+
+## once the job is finished, you can check the quality of the trimmed reads in the browser
+firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1_fastqc.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2_fastqc.html
