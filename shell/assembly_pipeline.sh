@@ -121,52 +121,6 @@ qstat -awt
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
 
-## for the PacBio data, we do not have a sequencing summary file as for the ONT data, thus, we need to use the FASTQ sequences for QC
-
-mkdir -p ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC
-
-echo """
-#!/bin/sh
-
-## name of Job
-#PBS -N fastqc
-
-## Redirect output stream to this file.
-#PBS -o ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/fastq_log.txt
-
-## Stream Standard Output AND Standard Error to outputfile (see above)
-#PBS -j oe
-
-## Select 10 cores and 50gb of RAM
-#PBS -l select=1:ncpus=10:mem=50g
-
-######## load dependencies #######
-
-source /opt/anaconda3/etc/profile.d/conda.sh
-conda activate nanoplot_1.32.1
-
-######## run analyses #######
-
-NanoPlot \
-  -t 10 \
-  --fastq ~/Workshop_IV_DeNovoAssembly/data/PacBio/Garra_PB.fastq.gz \
-  --plots dot \
-  -o ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC
-
-""" > ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/nanoplot_pb.sh
-
-## Submit the job to OpenPBS
-
-qsub ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/nanoplot_pb.sh
-
-## check the status of your OpenPBS Job
-
-qstat -awt
-
-## once the job is finished, you can check the output in the browser
-
-firefox ~/Workshop_IV_DeNovoAssembly/results/PacBio_QC/NanoPlot-report.html
-
 ################### (3) Trimming of Illumina reads ###################
 
 ## Before we start the actual assembly, we need to "clean up" the Illumina reads, i.e. to trim away tails of the reads with low quality and adaptor sequences that were used for Illumina sequencing. We use the program trim_galore for that.
@@ -306,3 +260,86 @@ qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 ################### (5) De Novo Assembly ###################
 
 ## Now that we have an idea about the Approximate genome-size we can start the de-novo assembly
+
+## When using Illumina data alone or in combination with single molecule sequencing data (ONT and PacBio), we will use SPAdes which reconstructs genomes using DeBrujin-Graph algorithms. If only single molecule sequencing data is available, we will use the FLYE assembler, which is based on Repeat Graphs
+
+## First, we will use SPAdes with Illumina and ONT data. In this case, the ONT data will be used to combine contigs (from Illumina data) into scaffolds.
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/denovo/spades
+
+echo """
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N denovo_Spades
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select a maximum walltime of 2h
+  #PBS -l walltime=100:00:00
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50gb
+
+  ## load all necessary software into environment
+  module load Assembly/SPAdes_3.15.3
+
+  ## first concatenate all ONT reads into a single file
+  cat ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT_*.fastq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
+
+  spades.py \
+    -1 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq.gz \
+    -2 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq.gz \
+    --nanopore ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz \
+    -t 10 \
+    -m 50 \
+    -o ~/Workshop_IV_DeNovoAssembly/results/denovo/spades
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
+
+## alternatively, we also try FLYE with the ONT data only
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye
+
+echo """
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N denovo_Flye
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select a maximum walltime of 2h
+  #PBS -l walltime=100:00:00
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50gb
+
+  ## load all necessary software into environment
+  source /opt/anaconda3/etc/profile.d/conda.sh
+  conda activate flye-2.9
+
+  ## first concatenate all ONT reads into a single file
+  cat ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT_*.fastq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
+
+  flye \
+  --nano-raw ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz \
+  --out-dir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye \
+  --threads 10 \
+  --scaffold
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
