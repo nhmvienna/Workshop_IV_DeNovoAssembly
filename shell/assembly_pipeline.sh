@@ -217,3 +217,92 @@ qstat -awt
 ## once the job is finished, you can check the quality of the trimmed reads in the browser
 firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1_fastqc.html
 firefox ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2_fastqc.html
+
+################### (4) Genome-size estimation ###################
+
+## Now that we have an idea the quality and trimmed Illumina reads we can use these data to get a rough idea about the expected size of the genome. Note that we are using only a very small subset. Thus, the estimate will only be very rough.
+
+## First, we will use the program JellyFish to count the number of k-mers in the dataset. A k-mer is a unqiue sequence of a given length n (for example n=31bp) found in the pool of sequences. The original reads will therefore chopped down into substrings of size n, for example (n=5):
+
+# ACGGTGAGGAT
+# ACGGT
+#  CGGTG
+#   GGTGA
+#    GTGAG
+#     TGAGG
+#      GAGGA
+#       AGGAT
+
+## After that, the Program GenomeScope will estimate the Genome-size based on the coverage distribution of the k-mers. See https://github.com/nhmvienna/AutDeNovo#3-genome-size-estimation for more details.
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/genomesize
+
+echo """
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N jellyfish
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/jellyfish_log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select a maximum walltime of 2h
+  #PBS -l walltime=48:00:00
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50gb
+
+  ## load all necessary software into environment
+  module load Assembly/Jellyfish-2.3.0
+  module load Assembly/genomescope-2.0
+
+  ## unzip files
+  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq &
+  gunzip -c ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq.gz \
+  > ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq
+
+  wait
+
+  ## run Jellyfish
+  ## parameters
+  # -C canononical; count both strands
+  # -m 31 Length of mers
+  # -s initial hash size
+
+  jellyfish-linux count \
+    -C \
+    -m 31 \
+    -s 100M \
+    -t 10 \
+    -F 2 \
+    -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.jf \
+    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_1_val_1.fq \
+    ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_2_val_2.fq
+
+  ## remove unzipped copy of reads
+  rm -f ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra474_*_val_*.fq
+
+  ## make a histogram of all k-mers
+  jellyfish-linux histo \
+    -t 10 \
+    ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.jf \
+    > ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.histo
+
+  ## run GenomeScope
+
+  genomescope.R \
+  -i ~/Workshop_IV_DeNovoAssembly/results/genomesize/reads.histo \
+  -k 31 \
+  -p 2 \
+  -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats
+""" > ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
+
+qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
+
+################### (5) De Novo Assembly ###################
+
+## Now that we have an idea about the Approximate genome-size we can start the de-novo assembly
