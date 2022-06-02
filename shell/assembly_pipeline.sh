@@ -306,7 +306,7 @@ qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
 
 ## alternatively, we also try FLYE with the ONT data only
 
-mkdir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/denovo/flye
 
 echo """
   #!/bin/sh
@@ -350,17 +350,17 @@ qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
 ## At first, we will produce some statistics that summarize the assembly. These include, for example, (1) the total number of contigs, (2) the N50 value, i.e. N50 is defined as the sequence length of the shortest contig at 50% of the total genome length (after sorting the contigs by decreasing length). We use the program QUAST to calculate these
 
-mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/
 
 echo """
 
   #!/bin/sh
 
   ## name of Job
-  #PBS -N QUAST
+  #PBS -N QUAST_Spades
 
   ## Redirect output stream to this file.
-  #PBS -o~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/log.txt
+  #PBS -o~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/log.txt
 
   ## Stream Standard Output AND Standard Error to outputfile (see above)
   #PBS -j oe
@@ -375,12 +375,49 @@ echo """
   ######## run analyses #######
 
   quast.py \
-  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades \
   --threads 10 \
   --eukaryote \
   -f \
   ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/scaffolds.fasta
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/quast.sh
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/quast.sh
 
-qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/quast.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/quast.sh
+
+### now we repeat the same for the FLYE assembly
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N QUAST_Flye
+
+  ## Redirect output stream to this file.
+  #PBS -o~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  module load Assembly/Quast-5.1.0rc1
+
+  ######## run analyses #######
+
+  quast.py \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye \
+  --threads 10 \
+  --eukaryote \
+  -f \
+  ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/assembly.fasta
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
