@@ -335,7 +335,7 @@ echo """
   > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
   flye \
-  --nano-raw ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz \
+  --nano-raw ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT_1.fastq.gz \
   --out-dir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye \
   --threads 10 \
   --scaffold
@@ -348,7 +348,9 @@ qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
 ################### (6) Assembly statistics ###################
 
-mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast
+## At first, we will produce some statistics that summarize the assembly. These include, for example, (1) the total number of contigs, (2) the N50 value, i.e. N50 is defined as the sequence length of the shortest contig at 50% of the total genome length (after sorting the contigs by decreasing length). We use the program QUAST to calculate these
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/
 
 echo """
 
@@ -373,12 +375,12 @@ echo """
   ######## run analyses #######
 
   quast.py \
-  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades \
   --threads 10 \
   --eukaryote \
   -f \
   ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/scaffolds.fasta
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/quast.sh
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/quast.sh
 
-qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast/quast.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/Quast_Spades/quast.sh
