@@ -335,7 +335,7 @@ echo """
   > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
   flye \
-  --nano-raw ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT_1.fastq.gz \
+  --nano-raw ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz \
   --out-dir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye \
   --threads 10 \
   --scaffold
