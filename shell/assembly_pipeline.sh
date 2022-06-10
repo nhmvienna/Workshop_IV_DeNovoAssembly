@@ -528,6 +528,8 @@ sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
   SmudgePlot=no \
   BuscoDB=vertebrata_odb10
 
+### Check the folder structure in ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL, especially the output folder
+
 ## Now repeat with the ONT data
 
 mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ONT
