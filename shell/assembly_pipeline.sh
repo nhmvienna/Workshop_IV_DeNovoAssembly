@@ -155,7 +155,7 @@ trim_galore \
   --paired \
   --quality 20 \
   --length 85  \
-  --cores 200 \
+  --cores 10 \
   --fastqc \
   --gzip \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
@@ -257,6 +257,9 @@ echo """
 
 qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 
+## once the job is finished, you can check the predicted genome size (pressing Q exits the display)
+less ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats/summary.txt
+
 ################### (5) De Novo Assembly ###################
 
 ## Now that we have an idea about the Approximate genome-size we can start the de-novo assembly
@@ -299,6 +302,8 @@ echo """
     -t 10 \
     -m 50 \
     -o ~/Workshop_IV_DeNovoAssembly/results/denovo/spades
+
+  rm -f ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
 """ > ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
 
@@ -343,6 +348,9 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
+
+## check assembly stats in log file (optional)
+tail -10 ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.log
 
 #### OK, now the assemblies is finished, what now?
 
@@ -421,6 +429,13 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
+
+## check the status of your OpenPBS Job
+qstat -awt
+
+## check the QUAST results
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/report.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/report.html
 
 ### last, but not least, we will test how many BUSCO (XXX) genes can be detected in our de novo assembly
 
@@ -506,5 +521,50 @@ echo """
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
 
+## check the status of your OpenPBS Job
+qstat -awt
 
-### and
+## check the BUSCO results
+tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/spades/run_vertebrata_odb10/short_summary.txt
+tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye/run_vertebrata_odb10/short_summary.txt
+
+### OK; lot's of work! wouldn't it be nice to do everything in one go?
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh
+
+## Let's try it out with our test Illumina dataset
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
+  Name=ILL \
+  OutputFolder=~/Workshop_IV_DeNovoAssembly/results/Automated_ILL \
+  Fwd=~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  Rev=~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  threads=10 \
+  RAM=20 \
+  RAMAssembly=20 \
+  decont=no \
+  SmudgePlot=no \
+  BuscoDB=vertebrata_odb10
+
+### Check the folder structure in ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL, especially the output folder
+
+## Now repeat with the ONT data
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ONT
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
+  Name=ONT \
+  OutputFolder=~/Workshop_IV_DeNovoAssembly/results/Automated_ONT \
+  ONT=~/Workshop_IV_DeNovoAssembly/data/ONT \
+  threads=10 \
+  RAM=20 \
+  RAMAssembly=20 \
+  decont=no \
+  SmudgePlot=no \
+  BuscoDB=vertebrata_odb10
+
+## what do you get??
+
+## Thanks for participating!
