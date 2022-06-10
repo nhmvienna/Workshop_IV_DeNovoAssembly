@@ -155,7 +155,7 @@ trim_galore \
   --paired \
   --quality 20 \
   --length 85  \
-  --cores 200 \
+  --cores 10 \
   --fastqc \
   --gzip \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
@@ -299,6 +299,8 @@ echo """
     -t 10 \
     -m 50 \
     -o ~/Workshop_IV_DeNovoAssembly/results/denovo/spades
+
+  rm -f ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
 """ > ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
 
@@ -506,5 +508,39 @@ echo """
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
 
+### OK; lot's of work! wouldn't it be nice to do everything in one go?
 
-### and
+mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh
+
+## Let's try it out with our test Illumina dataset
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
+  Name=ILL \
+  OutputFolder=~/Workshop_IV_DeNovoAssembly/results/Automated_ILL \
+  Fwd=~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  Rev=~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
+  threads=10 \
+  RAM=20 \
+  RAMAssembly=20 \
+  decont=no \
+  SmudgePlot=no \
+  BuscoDB=vertebrata_odb10
+
+## Now repeat with the ONT data
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ONT
+
+sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
+  Name=ONT \
+  OutputFolder=~/Workshop_IV_DeNovoAssembly/results/Automated_ONT \
+  ONT=~/Workshop_IV_DeNovoAssembly/data/ONT \
+  threads=10 \
+  RAM=20 \
+  RAMAssembly=20 \
+  decont=no \
+  SmudgePlot=no \
+  BuscoDB=vertebrata_odb10
+
+## what do you get??
