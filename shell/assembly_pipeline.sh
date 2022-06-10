@@ -566,3 +566,5 @@ sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
   BuscoDB=vertebrata_odb10
 
 ## what do you get??
+
+## Thanks for participating!
