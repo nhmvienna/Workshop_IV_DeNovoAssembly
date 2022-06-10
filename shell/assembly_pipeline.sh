@@ -421,3 +421,90 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
+
+### last, but not least, we will test how many BUSCO (XXX) genes can be detected in our de novo assembly
+
+## First, for the Illumina-based assembly
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N BUSCO_flye
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  source /opt/anaconda3/etc/profile.d/conda.sh
+  conda activate busco_5.2.2
+
+  ######## run analyses #######
+
+  ## Go to pwd
+  cd ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco
+
+  busco -i ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/scaffolds.fasta \
+    -o spades \
+    -m genome \
+    -c 10 \
+    -f \
+    -l vertebrata_odb10
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/Spades_busco.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/Spades_busco.sh
+
+## ...and then for the ONT-based assembly
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N BUSCO_flye
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  source /opt/anaconda3/etc/profile.d/conda.sh
+  conda activate busco_5.2.2
+
+  ######## run analyses #######
+
+  ## Go to pwd
+  cd ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco
+
+  busco -i ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/assembly.fasta \
+    -o Flye \
+    -m genome \
+    -c 10 \
+    -f \
+    -l vertebrata_odb10
+
+""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
+
+
+### and
