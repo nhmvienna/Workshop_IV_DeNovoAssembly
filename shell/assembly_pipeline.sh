@@ -257,6 +257,9 @@ echo """
 
 qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 
+## once the job is finished, you can check the predicted genome size (pressing Q exits the display)
+less ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats/summary.txt
+
 ################### (5) De Novo Assembly ###################
 
 ## Now that we have an idea about the Approximate genome-size we can start the de-novo assembly
@@ -346,6 +349,9 @@ echo """
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
+## check assembly stats in log file (optional)
+tail -10 ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.log
+
 #### OK, now the assemblies is finished, what now?
 
 ################### (6) Assembly statistics ###################
@@ -423,6 +429,13 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
+
+## check the status of your OpenPBS Job
+qstat -awt
+
+## check the QUAST results
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/report.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/report.html
 
 ### last, but not least, we will test how many BUSCO (XXX) genes can be detected in our de novo assembly
 
@@ -507,6 +520,13 @@ echo """
 """ > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
+
+## check the status of your OpenPBS Job
+qstat -awt
+
+## check the BUSCO results
+tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/spades/run_vertebrata_odb10/short_summary.txt
+tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye/run_vertebrata_odb10/short_summary.txt
 
 ### OK; lot's of work! wouldn't it be nice to do everything in one go?
 
