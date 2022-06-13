@@ -1,6 +1,6 @@
 ### Workshop IV - De-novo assembly
 
--   The slides to this Workshop can be found [here](<>)
+-   The slides to this Workshop can be found [here](data/Workshop_DeNovoAssembly.pdf)
 -   The recordings of the Workshop can be found on the NHM intranet under `I:\Public\mkapun\FrontiersInMolecularSystematics\Workshop_IV_DeNovoAssembly`
 
 -   check out the [previous workshop](https://github.com/nhmvienna/MysteriousAbominableYeti) for instructions on how to work on the Phyloserver
@@ -13,4 +13,4 @@ git clone https://github.com/nhmvienna/Workshop_IV_DeNovoAssembly
 
 -   Then, follow the instruction in shell/assembly_pipeline.sh
 
-## For a fully automated Pipeline, see here: <https://github.com/nhmvienna/AutDeNovo>
+#### For a fully automated Pipeline, see here: <https://github.com/nhmvienna/AutDeNovo>
