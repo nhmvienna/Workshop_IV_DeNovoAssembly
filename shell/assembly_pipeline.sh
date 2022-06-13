@@ -530,6 +530,8 @@ tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye/run_ver
 
 ### OK; lot's of work! wouldn't it be nice to do everything in one go?
 
+################### (7) AutDeNovo pipeline ###################
+
 mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL
 
 sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh
