@@ -5,7 +5,7 @@
 
 -   check out the [previous workshop](https://github.com/nhmvienna/MysteriousAbominableYeti) for instructions on how to work on the Phyloserver
 
--   In your home directory on the server, clone this repository by typing the following command in your commandline
+-   In your home directory on the server, please clone this repository by typing the following command in your commandline using ATOM
 
 ```bash
 git clone https://github.com/nhmvienna/Workshop_IV_DeNovoAssembly
