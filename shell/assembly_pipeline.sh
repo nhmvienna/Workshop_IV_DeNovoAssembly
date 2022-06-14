@@ -448,7 +448,7 @@ echo """
   #!/bin/sh
 
   ## name of Job
-  #PBS -N BUSCO_flye
+  #PBS -N BUSCO_spades
 
   ## Redirect output stream to this file.
   #PBS -o ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/log.txt
