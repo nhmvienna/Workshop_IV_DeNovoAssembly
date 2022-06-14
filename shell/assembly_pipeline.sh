@@ -83,7 +83,7 @@ echo """
 #!/bin/sh
 
 ## name of Job
-#PBS -N fastqc
+#PBS -N nanoplot
 
 ## Redirect output stream to this file.
 #PBS -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastq_log.txt
