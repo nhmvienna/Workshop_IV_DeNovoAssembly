@@ -1,6 +1,6 @@
 ### Workshop IV - De-novo assembly
 
--   The slides to this Workshop can be found [here](data/Workshop_DeNovoAssembly.pdf)
+-   The slides to this Workshop can be found [here](data/NHMW_Workshop_IV_DeNovAssembly.pdf)
 -   The recordings of the Workshop can be found on the NHM intranet under `I:\Public\mkapun\FrontiersInMolecularSystematics\Workshop_IV_DeNovoAssembly`
 
 -   check out the [previous workshop](https://github.com/nhmvienna/MysteriousAbominableYeti) for instructions on how to work on the Phyloserver

@@ -59,7 +59,7 @@ fastqc \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R2.fq.gz
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/fastqc.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/fastqc.sh
 
 ## Submit the job to OpenPBS
 
@@ -74,8 +74,9 @@ qstat -awt
 firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra_Ill_R1_fastqc.html
 firefox ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC/Garra_Ill_R2_fastqc.html
 
-## What about the ONT dataset? We will use Nanoplot for this!
+## To stop the Firefox process on the commandline, use the shortcut ctrl(strg)+c
 
+## What about the ONT dataset? We will use Nanoplot for this!
 
 mkdir -p ~/Workshop_IV_DeNovoAssembly/results/ONT_QC
 
@@ -86,7 +87,7 @@ echo """
 #PBS -N nanoplot
 
 ## Redirect output stream to this file.
-#PBS -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/fastq_log.txt
+#PBS -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_log.txt
 
 ## Stream Standard Output AND Standard Error to outputfile (see above)
 #PBS -j oe
@@ -97,7 +98,7 @@ echo """
 ######## load dependencies #######
 
 source /opt/anaconda3/etc/profile.d/conda.sh
-conda activate nanoplot_1.32.1
+conda activate nanoplot_1.39.0
 
 ######## run analyses #######
 
@@ -107,7 +108,7 @@ NanoPlot \
   --plots dot \
   -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_ont.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_ont.sh
 
 ## Submit the job to OpenPBS
 
@@ -120,6 +121,60 @@ qstat -awt
 ## once the job is finished, you can check the output in the browser
 
 firefox ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
+
+### Wouldn't it be nice to have a PDF report as well? We can use the program pandoc to convert the HTML to a PDF
+
+echo """
+#!/bin/sh
+
+## name of Job
+#PBS -N nanoplot_pandoc
+
+## Redirect output stream to this file.
+#PBS -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NEW_pandoc_log.txt
+
+## Stream Standard Output AND Standard Error to outputfile (see above)
+#PBS -j oe
+
+## Select 10 cores and 50gb of RAM
+#PBS -l select=1:ncpus=5:mem=5g
+
+################ make pdf report #############
+
+source /opt/anaconda3/etc/profile.d/conda.sh
+conda activate base
+
+pandoc -f html \
+  -t markdown \
+  -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.md \
+  ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.html
+
+### add Header to markdown for Plots section
+awk '1;/### Plots/{exit}' \
+  ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.md \
+  > ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report_cut.md
+
+### add references to plots in markdown document
+for i in ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/*.png
+do
+  File=\${i##*/}
+  Name=\${File%.*}
+  echo '!['\$Name']('\$i')' \
+    >> ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report_cut.md
+done
+
+## convert markdown to PDF
+pandoc -f markdown \
+  -t latex \
+  -o ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report.pdf \
+  ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report_cut.md
+
+    #rm -f ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/NanoPlot-report*.md
+""" >~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_pandoc.sh
+
+## Submit the job to OpenPBS
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/ONT_QC/nanoplot_pandoc.sh
 
 ################### (3) Trimming of Illumina reads ###################
 
@@ -161,7 +216,7 @@ trim_galore \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R2.fq.gz
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/trimmed/trim.sh
 
@@ -223,9 +278,10 @@ echo """
 
   ## run Jellyfish
   ## parameters
-  # -C canononical; count both strands
+  # -C canonical; count both strands
   # -m 31 Length of mers
   # -s initial hash size
+  # -F number of files open simultaneously
 
   jellyfish-linux count \
     -C \
@@ -253,9 +309,9 @@ echo """
   -p 2 \
   -o ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 
-qsub  ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
+qsub ~/Workshop_IV_DeNovoAssembly/results/genomesize/genomesize.sh
 
 ## once the job is finished, you can check the predicted genome size (pressing Q exits the display)
 less ~/Workshop_IV_DeNovoAssembly/results/genomesize/stats/summary.txt
@@ -289,12 +345,13 @@ echo """
   #PBS -l select=1:ncpus=10:mem=50gb
 
   ## load all necessary software into environment
-  module load Assembly/SPAdes_3.15.3
+  module load Assembly/SPAdes_3.15.4
 
   ## first concatenate all ONT reads into a single file
   cat ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT_*.fastq.gz \
   > ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
+  ##
   spades.py \
     -1 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq.gz \
     -2 ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R2_val_2.fq.gz \
@@ -305,7 +362,7 @@ echo """
 
   rm -f ~/Workshop_IV_DeNovoAssembly/data/ONT/Garra_ONT.fastq.gz
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/spades.sh
 
@@ -345,7 +402,7 @@ echo """
   --threads 10 \
   --scaffold
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/flye.sh
 
@@ -383,13 +440,13 @@ echo """
   ######## run analyses #######
 
   quast.py \
-  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Quast \
   --threads 10 \
   --eukaryote \
   -f \
   ~/Workshop_IV_DeNovoAssembly/results/denovo/spades/scaffolds.fasta
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/quast.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/quast.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/quast.sh
 
@@ -420,13 +477,13 @@ echo """
   ######## run analyses #######
 
   quast.py \
-  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Quast \
   --threads 10 \
   --eukaryote \
   -f \
   ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/assembly.fasta
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 
@@ -434,8 +491,8 @@ qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/quast.sh
 qstat -awt
 
 ## check the QUAST results
-firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/report.html
-firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/report.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Quast/report.html
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Quast/report.html
 
 ### last, but not least, we will test how many BUSCO (XXX) genes can be detected in our de novo assembly
 
@@ -476,7 +533,7 @@ echo """
     -f \
     -l vertebrata_odb10
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/Spades_busco.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/Spades_busco.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/Spades_busco.sh
 
@@ -517,7 +574,7 @@ echo """
     -f \
     -l vertebrata_odb10
 
-""" > ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
+""" >~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
 
 qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye.sh
 
@@ -528,9 +585,115 @@ qstat -awt
 tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/spades/Busco/spades/run_vertebrata_odb10/short_summary.txt
 tail -13 ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye/Busco/Flye/run_vertebrata_odb10/short_summary.txt
 
+################### (7) Polishing with Racon ###################
+
+### finally, we want to test if polishing the Flye Genome does make a difference, we will use RACON for this
+
+mkdir ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N RACON_flye
+
+  ## Redirect output stream to this file.
+  #PBS -o ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  source /opt/anaconda3/etc/profile.d/conda.sh
+  module load NGSmapper/minimap2-2.17
+  conda activate racon_1.5.0
+
+  ############# do analayses ############
+
+  ## We will do three rounds of polishing with Racon using only the FWD Illumina reads
+
+  ## First copy the unpolished genome to the folder
+
+  cp ~/Workshop_IV_DeNovoAssembly/results/denovo/flye/assembly.fasta \
+    ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/unpolished.fa
+
+  for i in 1 2 3; do
+
+    minimap2 \
+      -x sr \
+      -t 10 \
+      ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/unpolished.fa \
+      ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq.gz \
+      > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/temp_reads_to_draft.paf
+
+    racon \
+      -t 10 \
+      ~/Workshop_IV_DeNovoAssembly/results/trimmed/Garra_Ill_R1_val_1.fq.gz \
+      ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/temp_reads_to_draft.paf \
+      ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/unpolished.fa \
+      > ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/temp_draft_new.fa
+
+    mv ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/temp_draft_new.fa \
+      ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/unpolished.fa \
+    
+  done
+
+mv ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/unpolished.fa \
+  ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/polished.fa 
+
+rm -rf /home/mkapun/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/temp_reads_to_draft.paf
+
+""" >~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/racon.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/racon.sh
+
+### now we repeat QUAST for the polished FLYE assembly
+
+mkdir -p ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/
+
+echo """
+
+  #!/bin/sh
+
+  ## name of Job
+  #PBS -N QUAST_Flye
+
+  ## Redirect output stream to this file.
+  #PBS -o~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/log.txt
+
+  ## Stream Standard Output AND Standard Error to outputfile (see above)
+  #PBS -j oe
+
+  ## Select 10 cores and 50gb of RAM
+  #PBS -l select=1:ncpus=10:mem=50g
+
+  ######## load dependencies #######
+
+  module load Assembly/Quast-5.1.0rc1
+
+  ######## run analyses #######
+
+  quast.py \
+  --output-dir ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/Quast \
+  --threads 10 \
+  --eukaryote \
+  -f \
+  ~/Workshop_IV_DeNovoAssembly/results/denovo/flye_racon/polished.fa 
+
+""" >~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/quast.sh
+
+qsub ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/quast.sh
+
+firefox ~/Workshop_IV_DeNovoAssembly/results/AssemblyQC/flye_racon/Quast/report.html
+
 ### OK; lot's of work! wouldn't it be nice to do everything in one go?
 
-################### (7) AutDeNovo pipeline ###################
+################### (8) AutDeNovo pipeline ###################
 
 mkdir ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL
 
@@ -548,6 +711,7 @@ sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
   RAMAssembly=20 \
   decont=no \
   SmudgePlot=no \
+  Racon=4 \
   BuscoDB=vertebrata_odb10
 
 ### Check the folder structure in ~/Workshop_IV_DeNovoAssembly/results/Automated_ILL, especially the output folder
@@ -565,6 +729,7 @@ sh /media/inter/pipelines/AutDeNovo/AutDeNovo.sh \
   RAMAssembly=20 \
   decont=no \
   SmudgePlot=no \
+  Racon=4 \
   BuscoDB=vertebrata_odb10
 
 ## what do you get??
