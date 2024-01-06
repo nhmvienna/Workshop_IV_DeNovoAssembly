@@ -45,7 +45,7 @@ echo """
 #PBS -j oe
 
 ## Select 10 cores and 50gb of RAM
-#PBS -l select=1:ncpus=10:mem=50g
+#PBS -l select=1:ncpus=2:mem=50g
 
 ######## load dependencies #######
 
@@ -55,7 +55,7 @@ module load Tools/FastQC-0.11.9
 
 fastqc \
   --outdir ~/Workshop_IV_DeNovoAssembly/results/Illumina_QC \
-  --threads 10 \
+  --threads 2 \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R1.fq.gz \
   ~/Workshop_IV_DeNovoAssembly/data/Illumina/Garra_Ill_R2.fq.gz
 
